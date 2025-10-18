@@ -57,6 +57,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        quadrant: {
+          'urgent-important': "hsl(var(--quadrant-urgent-important))",
+          'urgent-important-foreground': "hsl(var(--quadrant-urgent-important-foreground))",
+          'not-urgent-important': "hsl(var(--quadrant-not-urgent-important))",
+          'not-urgent-important-foreground': "hsl(var(--quadrant-not-urgent-important-foreground))",
+          'urgent-not-important': "hsl(var(--quadrant-urgent-not-important))",
+          'urgent-not-important-foreground': "hsl(var(--quadrant-urgent-not-important-foreground))",
+          'not-urgent-not-important': "hsl(var(--quadrant-not-urgent-not-important))",
+          'not-urgent-not-important-foreground': "hsl(var(--quadrant-not-urgent-not-important-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
