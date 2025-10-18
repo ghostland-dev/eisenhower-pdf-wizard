@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QuadrantCard } from "./QuadrantCard";
-import { Download } from "lucide-react";
+import { Download, Trash2, Save } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
@@ -13,6 +13,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { saveTasks, loadTasks, clearTasks } from "@/lib/storage";
 
 export type Task = {
   id: string;
@@ -47,14 +59,42 @@ const EisenhowerMatrix = () => {
   
   const [newTaskText, setNewTaskText] = useState("");
   const [selectedQuadrant, setSelectedQuadrant] = useState<QuadrantType>("urgent-important");
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Load tasks from localStorage on mount
+  useEffect(() => {
+    const stored = loadTasks();
+    if (stored) {
+      setTasks(stored);
+      toast.success("Tâches chargées depuis la sauvegarde locale");
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    const hasAnyTasks = Object.values(tasks).some(quadrant => quadrant.length > 0);
+    if (hasAnyTasks) {
+      saveTasks(tasks);
+    }
+  }, [tasks]);
 
   const addTask = (quadrant: QuadrantType, text: string) => {
-    if (!text.trim()) return;
-    
+    const trimmedText = text.trim();
+    if (!trimmedText) {
+      toast.error("La tâche ne peut pas être vide");
+      return;
+    }
+
+    if (trimmedText.length > 500) {
+      toast.error("La tâche ne peut pas dépasser 500 caractères");
+      return;
+    }
+
     const newTask: Task = {
       id: `${quadrant}-${Date.now()}`,
-      text: text.trim(),
+      text: trimmedText,
     };
+    
     setTasks((prev) => ({
       ...prev,
       [quadrant]: [...prev[quadrant], newTask],
@@ -80,18 +120,42 @@ const EisenhowerMatrix = () => {
       ...prev,
       [quadrant]: prev[quadrant].filter((task) => task.id !== taskId),
     }));
+    toast.success("Tâche supprimée");
+  };
+
+  const clearAllTasks = () => {
+    setTasks({
+      "urgent-important": [],
+      "not-urgent-important": [],
+      "urgent-not-important": [],
+      "not-urgent-not-important": [],
+    });
+    clearTasks();
+    toast.success("Toutes les tâches ont été supprimées");
+  };
+
+  const getTotalTaskCount = () => {
+    return Object.values(tasks).reduce((total, quadrant) => total + quadrant.length, 0);
   };
 
   const exportToPDF = async () => {
     if (!matrixRef.current) return;
 
+    const totalTasks = getTotalTaskCount();
+    if (totalTasks === 0) {
+      toast.error("Ajoutez au moins une tâche avant d'exporter");
+      return;
+    }
+
     try {
+      setIsExporting(true);
       toast.info("Génération du PDF en cours...");
       
       const canvas = await html2canvas(matrixRef.current, {
         scale: 2,
         backgroundColor: "#fafafa",
         logging: false,
+        useCORS: true,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -118,11 +182,23 @@ const EisenhowerMatrix = () => {
         imgHeight * ratio
       );
 
-      pdf.save("matrice-eisenhower.pdf");
+      // Add footer with date
+      const date = new Date().toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      pdf.setFontSize(10);
+      pdf.setTextColor(128, 128, 128);
+      pdf.text(`Généré le ${date}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+
+      pdf.save(`matrice-eisenhower-${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success("PDF généré avec succès !");
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Erreur lors de la génération du PDF");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -147,16 +223,18 @@ const EisenhowerMatrix = () => {
                 onChange={(e) => setNewTaskText(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Entrez une nouvelle tâche..."
+                maxLength={500}
                 className="flex-1 text-base"
+                aria-label="Nouvelle tâche"
               />
               <Select
                 value={selectedQuadrant}
                 onValueChange={(value) => setSelectedQuadrant(value as QuadrantType)}
               >
-                <SelectTrigger className="w-full md:w-[280px]">
+                <SelectTrigger className="w-full md:w-[280px]" aria-label="Catégorie de tâche">
                   <SelectValue placeholder="Choisir la catégorie" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover z-50">
                   {quadrantOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -168,21 +246,72 @@ const EisenhowerMatrix = () => {
                 onClick={handleAddTask}
                 size="lg"
                 className="md:w-auto"
+                disabled={!newTaskText.trim()}
               >
                 Ajouter
               </Button>
             </div>
+            {newTaskText.length > 450 && (
+              <p className="text-sm text-muted-foreground text-right">
+                {500 - newTaskText.length} caractères restants
+              </p>
+            )}
           </div>
           
-          <Button
-            onClick={exportToPDF}
-            size="lg"
-            variant="outline"
-            className="gap-2"
-          >
-            <Download className="h-5 w-5" />
-            Télécharger en PDF
-          </Button>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button
+              onClick={exportToPDF}
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              disabled={isExporting || getTotalTaskCount() === 0}
+            >
+              <Download className="h-5 w-5" />
+              {isExporting ? "Génération..." : "Télécharger en PDF"}
+            </Button>
+            
+            {getTotalTaskCount() > 0 && (
+              <>
+                <Button
+                  onClick={() => saveTasks(tasks)}
+                  size="lg"
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Save className="h-5 w-5" />
+                  Sauvegarde manuelle
+                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="lg"
+                      variant="destructive"
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      Tout effacer
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera toutes vos tâches ({getTotalTaskCount()} tâches).
+                        Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearAllTasks}>
+                        Supprimer tout
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Matrix */}

@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# Matrice d'Eisenhower - Gestion des Priorités
 
-## Project info
+Application web pour organiser vos tâches selon la méthode d'Eisenhower : priorisez selon l'importance et l'urgence pour une meilleure productivité.
 
-**URL**: https://lovable.dev/projects/a7e14629-ea3d-4339-9b1f-a79eb01b752c
+## 🎯 Fonctionnalités
 
-## How can I edit this code?
+- ✅ **Interface intuitive** avec 4 quadrants colorés
+- ✅ **Ajout rapide** de tâches avec classification automatique
+- ✅ **Sauvegarde automatique** dans le navigateur (LocalStorage)
+- ✅ **Export PDF** professionnel avec date de génération
+- ✅ **Validation des entrées** pour éviter les erreurs
+- ✅ **Responsive design** - fonctionne sur tous les appareils
+- ✅ **Mode sombre/clair** automatique selon vos préférences système
+- ✅ **Gestion d'erreurs** robuste avec Error Boundary
 
-There are several ways of editing your application.
+## 📊 Les 4 Quadrants
 
-**Use Lovable**
+1. **À faire** (Urgent & Important) - Priorité absolue
+2. **À planifier** (Important, pas urgent) - Investir du temps ici
+3. **À déléguer** (Urgent, pas important) - Confier à d'autres
+4. **À abandonner** (Ni urgent, ni important) - Éliminer ces distractions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a7e14629-ea3d-4339-9b1f-a79eb01b752c) and start prompting.
+## 🚀 Technologies
 
-Changes made via Lovable will be committed automatically to this repo.
+- **React 18** + **TypeScript** - Framework moderne et type-safe
+- **Vite** - Build ultra-rapide
+- **Tailwind CSS** - Design system cohérent
+- **shadcn/ui** - Composants UI accessibles
+- **jsPDF** + **html2canvas** - Export PDF de qualité
+- **Zod** - Validation des données
+- **LocalStorage** - Persistance des données
 
-**Use your preferred IDE**
+## 💾 Sauvegarde des Données
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Vos tâches sont automatiquement sauvegardées dans votre navigateur :
+- Sauvegarde automatique après chaque modification
+- Les données persistent même après fermeture du navigateur
+- Bouton de sauvegarde manuelle disponible
+- Aucune donnée envoyée à un serveur externe
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📱 Installation
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Cloner le projet
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Installer les dépendances
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Lancer en développement
 npm run dev
+
+# Build pour la production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 🔒 Sécurité
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Validation stricte des entrées utilisateur (max 500 caractères)
+- Pas de stockage de données sensibles
+- Pas d'appels externes non sécurisés
+- Protection contre les injections XSS
 
-**Use GitHub Codespaces**
+## 📖 Guide d'Utilisation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Ajouter une tâche** : Tapez votre tâche, sélectionnez la catégorie appropriée, et cliquez sur "Ajouter"
+2. **Supprimer une tâche** : Survolez la tâche et cliquez sur l'icône de suppression
+3. **Exporter en PDF** : Cliquez sur "Télécharger en PDF" pour générer un document
+4. **Tout effacer** : Utilisez le bouton rouge pour recommencer à zéro
 
-## What technologies are used for this project?
+## 🌐 Déploiement
 
-This project is built with:
+L'application peut être déployée sur :
+- **Lovable** - Déploiement en un clic via le bouton "Publish"
+- **Vercel / Netlify** - Compatible avec tous les hébergeurs de sites statiques
+- **GitHub Pages** - Hébergement gratuit
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Configuration du domaine personnalisé
 
-## How can I deploy this project?
+1. Allez dans Project > Settings > Domains
+2. Cliquez sur "Connect Domain"
+3. Suivez les instructions de configuration DNS
 
-Simply open [Lovable](https://lovable.dev/projects/a7e14629-ea3d-4339-9b1f-a79eb01b752c) and click on Share -> Publish.
+## 📄 Licence
 
-## Can I connect a custom domain to my Lovable project?
+Ce projet est développé avec [Lovable](https://lovable.dev)
 
-Yes, you can!
+## 🤝 Support
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Pour toute question ou problème :
+- Consultez la [documentation Lovable](https://docs.lovable.dev/)
+- Rejoignez la [communauté Discord](https://discord.gg/lovable)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🎨 Personnalisation
+
+Le design system est entièrement personnalisable via :
+- `src/index.css` - Variables CSS et tokens de couleur
+- `tailwind.config.ts` - Configuration Tailwind
+- Tous les composants shadcn peuvent être modifiés
+
+---
+
+**Développé avec ❤️ en utilisant Lovable**

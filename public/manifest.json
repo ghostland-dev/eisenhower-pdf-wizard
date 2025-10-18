@@ -1,0 +1,16 @@
+{
+  "name": "Matrice d'Eisenhower",
+  "short_name": "Eisenhower",
+  "description": "Organisez vos tâches avec la matrice d'Eisenhower pour une meilleure productivité",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#222222",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
