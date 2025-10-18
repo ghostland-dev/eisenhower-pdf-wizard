@@ -1,10 +1,18 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { QuadrantCard } from "./QuadrantCard";
-import { Download, Plus } from "lucide-react";
+import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type Task = {
   id: string;
@@ -21,6 +29,13 @@ export type TasksByQuadrant = {
   [key in QuadrantType]: Task[];
 };
 
+const quadrantOptions = [
+  { value: "urgent-important", label: "À faire (Urgent & Important)" },
+  { value: "not-urgent-important", label: "À planifier (Important)" },
+  { value: "urgent-not-important", label: "À déléguer (Urgent)" },
+  { value: "not-urgent-not-important", label: "À abandonner" },
+] as const;
+
 const EisenhowerMatrix = () => {
   const matrixRef = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState<TasksByQuadrant>({
@@ -29,16 +44,35 @@ const EisenhowerMatrix = () => {
     "urgent-not-important": [],
     "not-urgent-not-important": [],
   });
+  
+  const [newTaskText, setNewTaskText] = useState("");
+  const [selectedQuadrant, setSelectedQuadrant] = useState<QuadrantType>("urgent-important");
 
   const addTask = (quadrant: QuadrantType, text: string) => {
+    if (!text.trim()) return;
+    
     const newTask: Task = {
       id: `${quadrant}-${Date.now()}`,
-      text,
+      text: text.trim(),
     };
     setTasks((prev) => ({
       ...prev,
       [quadrant]: [...prev[quadrant], newTask],
     }));
+  };
+  
+  const handleAddTask = () => {
+    if (newTaskText.trim()) {
+      addTask(selectedQuadrant, newTaskText);
+      setNewTaskText("");
+      toast.success("Tâche ajoutée !");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleAddTask();
+    }
   };
 
   const removeTask = (quadrant: QuadrantType, taskId: string) => {
@@ -104,9 +138,46 @@ const EisenhowerMatrix = () => {
             Organisez vos tâches selon leur importance et leur urgence pour une
             meilleure productivité
           </p>
+          
+          {/* Single Task Input */}
+          <div className="max-w-3xl mx-auto bg-card p-6 rounded-xl shadow-md space-y-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              <Input
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Entrez une nouvelle tâche..."
+                className="flex-1 text-base"
+              />
+              <Select
+                value={selectedQuadrant}
+                onValueChange={(value) => setSelectedQuadrant(value as QuadrantType)}
+              >
+                <SelectTrigger className="w-full md:w-[280px]">
+                  <SelectValue placeholder="Choisir la catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {quadrantOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={handleAddTask}
+                size="lg"
+                className="md:w-auto"
+              >
+                Ajouter
+              </Button>
+            </div>
+          </div>
+          
           <Button
             onClick={exportToPDF}
             size="lg"
+            variant="outline"
             className="gap-2"
           >
             <Download className="h-5 w-5" />
@@ -142,7 +213,6 @@ const EisenhowerMatrix = () => {
               title="À faire"
               subtitle="Tâches à échéance précise dont le retard entraînera des conséquences"
               tasks={tasks["urgent-important"]}
-              onAddTask={(text) => addTask("urgent-important", text)}
               onRemoveTask={(taskId) => removeTask("urgent-important", taskId)}
             />
             <QuadrantCard
@@ -150,7 +220,6 @@ const EisenhowerMatrix = () => {
               title="À planifier"
               subtitle="Tâches à échéance vague qui contribuent à la réussite à long terme"
               tasks={tasks["not-urgent-important"]}
-              onAddTask={(text) => addTask("not-urgent-important", text)}
               onRemoveTask={(taskId) =>
                 removeTask("not-urgent-important", taskId)
               }
@@ -167,7 +236,6 @@ const EisenhowerMatrix = () => {
               title="À déléguer"
               subtitle="Tâches à traiter, mais qui ne mobilisent pas vos compétences"
               tasks={tasks["urgent-not-important"]}
-              onAddTask={(text) => addTask("urgent-not-important", text)}
               onRemoveTask={(taskId) =>
                 removeTask("urgent-not-important", taskId)
               }
@@ -177,7 +245,6 @@ const EisenhowerMatrix = () => {
               title="À abandonner"
               subtitle="Distractions et tâches superflues"
               tasks={tasks["not-urgent-not-important"]}
-              onAddTask={(text) => addTask("not-urgent-not-important", text)}
               onRemoveTask={(taskId) =>
                 removeTask("not-urgent-not-important", taskId)
               }
